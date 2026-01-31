@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸運の宝くじ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(135deg, #1a0f0f 0%, #2d1810 50%, #1a0f0f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 99, 71, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            background: linear-gradient(180deg, #8B0000 0%, #5C0000 100%);
+            border-radius: 20px;
+            border: 4px solid #FFD700;
+            box-shadow:
+                0 0 0 4px #8B4513,
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(180deg, #FF4444 0%, #CC0000 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #FFD700;
+            position: relative;
+        }
+
+        .header-decoration {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .crystal-icon {
+            /* width: 40px; */
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            display: block;
+        }
+
+        .crystal-emoji {
+            font-size: 40px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            line-height: 1;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow:
+                -2px -2px 0 #8B0000,
+                2px -2px 0 #8B0000,
+                -2px 2px 0 #8B0000,
+                2px 2px 0 #8B0000,
+                0 0 10px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .description {
+            color: #FFF;
+            font-size: 14px;
+            margin-top: 10px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            line-height: 1.6;
+        }
+
+        .selected-area {
+            background: linear-gradient(180deg, #FFA500 0%, #FF8C00 100%);
+            padding: 20px;
+            border-bottom: 3px solid #8B4513;
+        }
+
+        .selected-label {
+            color: #8B0000;
+            font-weight: 900;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .selected-slots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .slot {
+            width: 60px;
+            height: 60px;
+            background: #8B0000;
+            border: 3px solid #FFD700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #FFD700;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .slot.filled {
+            background: #5C0000;
+            border-color: #FFA500;
+        }
+
+        .slot-content {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #8B0000 0%, #5C0000 100%);
+        }
+
+        .slot-content img {
+            width: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .grid-area {
+            background: #2C0000;
+            padding: 20px;
+            position: relative;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .grid-item {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #FF6B6B 0%, #CC0000 100%);
+            border: 2px solid #8B0000;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            box-shadow:
+                0 3px 6px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .grid-item:hover:not(.selected) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            border-color: #FFD700;
+        }
+
+        .grid-item.selected {
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            border-color: #333;
+        }
+
+        .item-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFF;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .grid-item.selected .item-content {
+            opacity: 0.5;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #00FF00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            font-weight: bold;
+        }
+
+        .grid-item.selected .checkmark {
+            opacity: 1;
+        }
+
+        .item-image {
+            /* width: 100%; */
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            padding: 10%;
+        }
+
+        .control-area {
+            background: linear-gradient(180deg, #5C0000 0%, #3C0000 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-top: 3px solid #8B4513;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 900;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            min-width: 140px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .clear-all-btn {
+            background: linear-gradient(180deg, #DC143C 0%, #8B0000 100%);
+            color: #FFF;
+            border: 3px solid #5C0000;
+        }
+
+        .clear-all-btn:hover {
+            background: linear-gradient(180deg, #FF1744 0%, #A50000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .restart-btn {
+            background: linear-gradient(180deg, #4169E1 0%, #0000CD 100%);
+            color: #FFF;
+            border: 3px solid #00008B;
+        }
+
+        .restart-btn:hover {
+            background: linear-gradient(180deg, #5179F1 0%, #1010DD 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn {
+            background: linear-gradient(180deg, #228B22 0%, #006400 100%);
+            color: #FFF;
+            border: 3px solid #004d00;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #2E8B2E 0%, #007400 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(180deg, #808080 0%, #606060 100%);
+            border-color: #404040;
+            color: #CCCCCC;
+        }
+
+        .counter {
+            text-align: center;
+            color: #8B0000;
+            font-size: 14px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(10, 1fr);
+                gap: 4px;
+            }
+
+            .grid-item {
+                border-radius: 4px;
+            }
+
+            .item-content {
+                font-size: 14px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .slot {
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                min-width: 120px;
+            }
+
+            .crystal-icon {
+                width: 32px;
+                height: 32px;
+            }
+
+            .crystal-emoji {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-container {
+                gap: 2px;
+            }
+
+            .item-content {
+                font-size: 10px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 12px;
+                min-width: 100px;
+            }
+
+            .control-area {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-decoration">
+                <img src="img/crystal.png" alt="crystal" class="crystal-icon">
+                <!-- <div class="crystal-emoji">💎</div> -->
+
+                <h1 class="title">幸運の宝くじ</h1>
+            </div>
+            <p class="description">
+                ダブりなしで5種類のクッキーを選ぼう！<br>
+                抽選から外したいクッキーを先にタッチして選択してね。
+            </p>
+        </div>
+
+        <div class="selected-area">
+            <div class="selected-label">選択したクッキー（スタートで抽選）</div>
+            <div class="selected-slots" id="selectedSlots">
+                <div class="slot" data-index="0"></div>
+                <div class="slot" data-index="1"></div>
+                <div class="slot" data-index="2"></div>
+                <div class="slot" data-index="3"></div>
+                <div class="slot" data-index="4"></div>
+            </div>
+            <div class="counter">未選択: <span id="uncheckedCount">30</span>個</div>
+        </div>
+
+        <div class="grid-area">
+            <div class="grid-container" id="gridContainer"></div>
+        </div>
+
+        <div class="control-area">
+            <button class="btn clear-all-btn" id="clearAllBtn" onclick="clearAllChecks()">
+                全選択解除
+            </button>
+            <button class="btn restart-btn" id="restartBtn" onclick="restart()">
+                やり直し
+            </button>
+            <button class="btn start-btn" id="startBtn" onclick="startRoulette()">
+                スタート
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_ITEMS = 30;
+        const SELECT_COUNT = 5;
+        const COOKIE_NAME = 'roulette_checked_items';
+        const COOKIE_DAYS = 7;
+
+        let checkedItems = new Set();
+        let displayedItems = [];
+
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        }
+
+        function saveToCookie() {
+            const itemsArray = Array.from(checkedItems).sort((a, b) => a - b);
+            setCookie(COOKIE_NAME, itemsArray.join(','), COOKIE_DAYS);
+        }
+
+        function loadFromCookie() {
+            const saved = getCookie(COOKIE_NAME);
+            checkedItems.clear();
+
+            if (saved) {
+                const items = saved.split(',').map(Number).filter(n => !isNaN(n) && n >= 0 && n < TOTAL_ITEMS);
+                items.forEach(item => checkedItems.add(item));
+            }
+
+            updateGridDisplay();
+            updateCounter();
+        }
+
+        function initGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < TOTAL_ITEMS; i++) {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.dataset.index = i;
+                item.onclick = () => toggleCheck(i);
+
+                const content = document.createElement('div');
+                content.className = 'item-content';
+                // content.textContent = i + 1;
+                const img = document.createElement('img');
+                img.src = `img/cookie_${i + 1}.png`;
+                img.alt = `cookie_${i + 1}`;
+                img.className = 'item-image';
+                content.appendChild(img);
+
+                const checkmark = document.createElement('div');
+                checkmark.className = 'checkmark';
+                checkmark.textContent = '✓';
+
+                item.appendChild(content);
+                item.appendChild(checkmark);
+                container.appendChild(item);
+            }
+
+            loadFromCookie();
+        }
+
+        function updateGridDisplay() {
+            document.querySelectorAll('.grid-item').forEach(item => {
+                const index = parseInt(item.dataset.index);
+                if (checkedItems.has(index)) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function toggleCheck(index) {
+            const item = document.querySelector(`.grid-item[data-index="${index}"]`);
+
+            if (checkedItems.has(index)) {
+                checkedItems.delete(index);
+                item.classList.remove('selected');
+            } else {
+                checkedItems.add(index);
+                item.classList.add('selected');
+            }
+
+            saveToCookie();
+            updateCounter();
+            updateStartButtonState();
+        }
+
+        function updateCounter() {
+            const unchecked = TOTAL_ITEMS - checkedItems.size;
+            document.getElementById('uncheckedCount').textContent = unchecked;
+        }
+
+        function updateStartButtonState() {
+            const unchecked = TOTAL_ITEMS - checkedItems.size;
+            const startBtn = document.getElementById('startBtn');
+
+            if (unchecked === 0) {
+                startBtn.disabled = true;
+            } else {
+                startBtn.disabled = false;
+            }
+        }
+
+        function startRoulette() {
+            const unchecked = TOTAL_ITEMS - checkedItems.size;
+
+            if (unchecked === 0) {
+                return;
+            }
+
+            const availableIndices = [];
+            for (let i = 0; i < TOTAL_ITEMS; i++) {
+                if (!checkedItems.has(i)) {
+                    availableIndices.push(i);
+                }
+            }
+
+            const selectCount = Math.min(SELECT_COUNT, availableIndices.length);
+            const shuffled = availableIndices.sort(() => Math.random() - 0.5);
+            const targets = shuffled.slice(0, selectCount);
+            targets.sort((a, b) => a - b);
+            targets.forEach(index => {
+                checkedItems.add(index);
+                const item = document.querySelector(`.grid-item[data-index="${index}"]`);
+                item.classList.add('selected');
+            });
+
+            displayedItems = targets;
+            updateSlots();
+
+            saveToCookie();
+            updateCounter();
+            updateStartButtonState();
+        }
+
+        function updateSlots() {
+            const slots = document.querySelectorAll('.slot');
+
+            slots.forEach((slot, i) => {
+                if (displayedItems[i] !== undefined) {
+                    const index = displayedItems[i];
+                    slot.classList.add('filled');
+                    slot.innerHTML = `
+                <div class="slot-content">
+                    <img src="img/cookie_${index + 1}.png" alt="cookie_${index + 1}">
+                </div>
+            `;
+                } else {
+                    slot.classList.remove('filled');
+                    slot.innerHTML = '';
+                }
+            });
+        }
+
+        function restart() {
+            displayedItems.forEach(index => {
+                checkedItems.delete(index);
+                const item = document.querySelector(`.grid-item[data-index="${index}"]`);
+                if (item) {
+                    item.classList.remove('selected');
+                }
+            });
+
+            displayedItems = [];
+            updateSlots();
+
+            saveToCookie();
+            updateCounter();
+            updateStartButtonState();
+        }
+
+        function clearAllChecks() {
+            if (checkedItems.size === 0) return;
+
+            if (confirm('全ての選択を解除しますか？')) {
+                checkedItems.clear();
+
+                document.querySelectorAll('.grid-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+
+                deleteCookie(COOKIE_NAME);
+
+                displayedItems = [];
+                updateSlots();
+
+                updateCounter();
+                updateStartButtonState();
+            }
+        }
+
+        initGrid();
+        updateStartButtonState();
+    </script>
+</body>
+
+</html>
